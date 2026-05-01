@@ -183,7 +183,7 @@ with tab4:
 with tab5:
     st.markdown('<div class="section-title">DETAILED ANALYTICS</div>', unsafe_allow_html=True)
     display_df = filt[['Date', 'Followers', 'Likes', 'Comments', 'Shares', 'Engagement_Rate', 'Post_Type']].copy()
-    display_df['Date'] = display_df['Date'].dt.date
+    display_df['Date'] = pd.to_datetime(display_df['Date']).dt.date
     display_df = display_df.sort_values('Date', ascending=False)
     st.dataframe(display_df.reset_index(drop=True), use_container_width=True, hide_index=True, height=450)
     
