@@ -1,196 +1,238 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
 import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Instagram Analytics", page_icon="📸", layout="wide")
+st.set_page_config(page_title="Instagram Analytics Pro", page_icon="📊", layout="wide")
 
+# --- Premium CSS ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap');
-html, body, [class*="css"] { background-color: #0a0a1a; color: #fff; font-family: 'Inter', sans-serif; }
-.stApp { background-color: #0a0a1a; }
+
+html, body, [class*="css"] {
+    background-color: #0a0a0a;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+
+.stApp { background-color: #0a0a0a; }
+
 .hero {
-    background: linear-gradient(135deg, #E4405F 0%, #FD1D1D 50%, #1a0a4a 100%);
-    padding: 2.5rem; border-radius: 20px; margin-bottom: 2rem; text-align: center;
-    box-shadow: 0 8px 32px rgba(228,64,95,0.3);
+    background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    padding: 2.5rem;
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(220, 39, 67, 0.3);
 }
-.hero h1 { font-family:'Bebas Neue',sans-serif; font-size:3.5rem; letter-spacing:4px; color:#fff; margin:0; }
-.hero p { color:#ffb3c1; margin-top:0.5rem; }
+
+.hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    letter-spacing: 6px;
+    color: #fff;
+    margin: 0;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+}
+
+.hero p {
+    color: #ffdbac;
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+}
+
 .metric-card {
-    background: linear-gradient(135deg,#1a1a2e,#16213e); border:1px solid #E4405F;
-    border-radius:16px; padding:1.3rem; text-align:center; margin-bottom:1rem;
-    box-shadow:0 4px 15px rgba(228,64,95,0.15);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 1px solid #333;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
-.metric-number { font-family:'Bebas Neue',sans-serif; font-size:2.5rem; color:#E4405F; }
-.metric-label { color:#aaa; font-size:0.8rem; text-transform:uppercase; letter-spacing:2px; }
-.section-title {
-    font-family:'Bebas Neue',sans-serif; font-size:1.8rem; color:#E4405F;
-    letter-spacing:3px; border-left:4px solid #E4405F; padding-left:12px; margin:1.5rem 0 1rem 0;
-}
-[data-testid="stSidebar"] { background-color:#0d0d1a !important; border-right:1px solid #E4405F; }
-.stTabs [data-baseweb="tab-list"] { background-color:#1a1a2e; border-radius:10px; }
-.stTabs [aria-selected="true"] { color:#E4405F !important; border-bottom:2px solid #E4405F; }
-.stButton > button {
-    background:linear-gradient(135deg,#E4405F,#fd1d1d); color:white; border:none;
-    border-radius:10px; font-weight:700; padding:0.6rem 2rem; transition:all 0.2s;
-}
-.stButton > button:hover { transform:scale(1.03); }
-#MainMenu, footer, header { visibility:hidden; }
 </style>
 """, unsafe_allow_html=True)
 
+# --- Hero Section ---
 st.markdown("""
 <div class="hero">
-    <h1>📸 INSTAGRAM ANALYTICS</h1>
-    <p>Growth • Engagement • Performance • Insights</p>
+    <h1>INSTAGRAM ANALYTICS PRO</h1>
+    <p>Track, Analyze & Grow Your Instagram Performance</p>
 </div>
 """, unsafe_allow_html=True)
 
-@st.cache_data
-def generate_instagram_data():
-    dates = pd.date_range(start='2024-01-01', end='2025-01-01', freq='D')
-    data = []
-    followers = 1000
-    for date in dates:
-        followers += np.random.randint(-50, 150)
-        engagement_rate = np.random.uniform(2, 8)
-        likes = np.random.randint(100, 5000)
-        comments = np.random.randint(10, 500)
-        shares = np.random.randint(5, 200)
-        
-        data.append({
-            'Date': date,
-            'Followers': max(followers, 1000),
-            'Engagement_Rate': engagement_rate,
-            'Likes': likes,
-            'Comments': comments,
-            'Shares': shares,
-            'Post_Type': np.random.choice(['Reel', 'Photo', 'Carousel', 'Story'])
-        })
+# --- File Upload ---
+uploaded_file = st.file_uploader("📁 Upload Instagram Data CSV", type=['csv'])
+
+# --- Sample Data Generator ---
+def generate_sample_data():
+    dates = pd.date_range(end=datetime.now(), periods=30, freq='D')
+    data = {
+        'Date': dates,
+        'Likes': np.random.randint(500, 5000, 30),
+        'Comments': np.random.randint(50, 500, 30),
+        'Shares': np.random.randint(20, 300, 30),
+        'Saves': np.random.randint(30, 400, 30),
+        'Reach': np.random.randint(2000, 20000, 30),
+        'Impressions': np.random.randint(3000, 30000, 30),
+        'Followers': np.cumsum(np.random.randint(10, 100, 30)) + 10000
+    }
     return pd.DataFrame(data)
 
-df = generate_instagram_data()
+# --- Load Data ---
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+else:
+    st.info("👆 Upload your CSV or use sample data below")
+    if st.button("Load Sample Data"):
+        df = generate_sample_data()
+        st.session_state['df'] = df
+    df = st.session_state.get('df', generate_sample_data())
 
-with st.sidebar:
-    st.markdown("## 📊 Profile Analytics")
-    st.markdown("---")
-    username = st.text_input("👤 Instagram Handle", "your_username")
-    time_period = st.selectbox("📅 Time Period", ["Last 30 Days", "Last 90 Days", "Last 6 Months", "All Time"])
-    st.markdown("---")
-    st.info("📈 Track your Instagram growth & engagement")
+# --- Data Cleaning & Fix for ValueError ---
+try:
+    # 1. Convert Date column
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
 
-period_map = {
-    "Last 30 Days": 30,
-    "Last 90 Days": 90,
-    "Last 6 Months": 180,
-    "All Time": None
-}
-days = period_map[time_period]
-filt = df.tail(days) if days else df
+    # 2. Drop rows where Date or key metrics are NaN - THIS FIXES THE ERROR
+    required_cols = ['Date', 'Likes', 'Comments', 'Reach']
+    df = df.dropna(subset=[col for col in required_cols if col in df.columns])
 
-current_followers = int(filt['Followers'].iloc[-1])
-prev_followers = int(filt['Followers'].iloc[0])
-follower_growth = current_followers - prev_followers
-growth_pct = (follower_growth / prev_followers * 100) if prev_followers > 0 else 0
+    # 3. Sort and reset index
+    df = df.sort_values('Date').reset_index(drop=True)
 
-avg_engagement = filt['Engagement_Rate'].mean()
-total_likes = int(filt['Likes'].sum())
-total_comments = int(filt['Comments'].sum())
+    # 4. Fill remaining NaN with 0
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df[numeric_cols] = df[numeric_cols].fillna(0)
 
-c1, c2, c3, c4 = st.columns(4)
-with c1:
-    st.markdown(f'<div class="metric-card"><div class="metric-number">{current_followers:,}</div><div class="metric-label">Followers</div></div>', unsafe_allow_html=True)
-with c2:
-    color = "🟢" if follower_growth >= 0 else "🔴"
-    st.markdown(f'<div class="metric-card"><div class="metric-number">{color} {follower_growth:,}</div><div class="metric-label">Growth</div></div>', unsafe_allow_html=True)
-with c3:
-    st.markdown(f'<div class="metric-card"><div class="metric-number">{avg_engagement:.2f}%</div><div class="metric-label">Engagement</div></div>', unsafe_allow_html=True)
-with c4:
-    st.markdown(f'<div class="metric-card"><div class="metric-number">{total_likes:,}</div><div class="metric-label">Total Likes</div></div>', unsafe_allow_html=True)
+except Exception as e:
+    st.error(f"Data processing error: {e}")
+    st.stop()
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📈 Growth", "❤️ Engagement", "📊 Posts", "🎯 Best Posts", "🔍 Details"])
+# --- Metrics Row ---
+col1, col2, col3, col4 = st.columns(4)
 
-PINK = "#E4405F"
+with col1:
+    total_likes = int(df['Likes'].sum())
+    st.metric("Total Likes", f"{total_likes:,}", delta=f"{df['Likes'].iloc[-1] - df['Likes'].iloc[-2]:+,}")
 
-with tab1:
-    st.markdown('<div class="section-title">FOLLOWER GROWTH</div>', unsafe_allow_html=True)
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=filt['Date'], y=filt['Followers'],
-                            mode='lines', name='Followers',
-                            line=dict(color=PINK, width=3),
-                            fill='tozeroy', fillcolor='rgba(228,64,95,0.1)'))
-    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-                     font=dict(color="white"), hovermode='x unified',
-                     xaxis=dict(gridcolor="#222"), yaxis=dict(gridcolor="#222"))
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown('<div class="section-title">GROWTH METRICS</div>', unsafe_allow_html=True)
-    growth_df = pd.DataFrame({
-        "Metric": ["Total Growth", "Growth %", "Daily Average", "Highest Day", "Lowest Day"],
-        "Value": [
-            f"{follower_growth:,}",
-            f"{growth_pct:.2f}%",
-            f"{int(follower_growth/len(filt))}",
-            f"+{int(filt['Followers'].diff().max())}",
-            f"{int(filt['Followers'].diff().min())}"
-        ]
-    })
-    st.dataframe(growth_df, use_container_width=True, hide_index=True)
+with col2:
+    total_comments = int(df['Comments'].sum())
+    st.metric("Total Comments", f"{total_comments:,}", delta=f"{df['Comments'].iloc[-1] - df['Comments'].iloc[-2]:+,}")
 
-with tab2:
-    st.markdown('<div class="section-title">ENGAGEMENT ANALYTICS</div>', unsafe_allow_html=True)
-    
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.metric("Avg Engagement Rate", f"{avg_engagement:.2f}%")
-    with c2:
-        st.metric("Total Comments", f"{total_comments:,}")
-    with c3:
-        st.metric("Total Shares", f"{int(filt['Shares'].sum()):,}")
-    
-    fig = px.bar(x=filt['Date'], y=['Likes', 'Comments', 'Shares'],
-                 barmode='stack', color_discrete_sequence=['#E4405F', '#FD1D1D', '#FF6B9D'],
-                 labels={"Date":"Date","value":"Count"})
-    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-                     font=dict(color="white"), xaxis=dict(gridcolor="#222"), yaxis=dict(gridcolor="#222"))
-    st.plotly_chart(fig, use_container_width=True)
+with col3:
+    avg_reach = int(df['Reach'].mean())
+    st.metric("Avg Reach", f"{avg_reach:,}", delta=f"{((df['Reach'].iloc[-1] / df['Reach'].iloc[-2] - 1) * 100):+.1f}%")
 
-with tab3:
-    st.markdown('<div class="section-title">POST TYPE ANALYSIS</div>', unsafe_allow_html=True)
-    
-    post_type_counts = filt['Post_Type'].value_counts()
-    fig = px.pie(values=post_type_counts.values, names=post_type_counts.index,
-                 color_discrete_sequence=['#E4405F', '#FD1D1D', '#FF6B9D', '#FFB3C1'])
-    fig.update_traces(textfont_color="white")
-    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-                     font=dict(color="white"))
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown('<div class="section-title">POST PERFORMANCE BY TYPE</div>', unsafe_allow_html=True)
-    post_perf = filt.groupby('Post_Type')[['Likes', 'Comments', 'Shares', 'Engagement_Rate']].mean().reset_index()
-    post_perf = post_perf.round(2)
-    st.dataframe(post_perf, use_container_width=True, hide_index=True)
-
-with tab4:
-    st.markdown('<div class="section-title">TOP PERFORMING POSTS</div>', unsafe_allow_html=True)
-    filt_copy = filt.copy()
-    filt_copy['Total_Engagement'] = filt_copy['Likes'] + filt_copy['Comments'] + filt_copy['Shares']
-    top_posts = filt_copy.nlargest(10, 'Total_Engagement')[['Date', 'Post_Type', 'Likes', 'Comments', 'Shares', 'Engagement_Rate']].copy()
-    top_posts['Date'] = top_posts['Date'].astype(str).str.split().str[0]
-    st.dataframe(top_posts.reset_index(drop=True), use_container_width=True, hide_index=True, height=300)
-
-with tab5:
-    st.markdown('<div class="section-title">DETAILED ANALYTICS</div>', unsafe_allow_html=True)
-    display_df = filt[['Date', 'Followers', 'Likes', 'Comments', 'Shares', 'Engagement_Rate', 'Post_Type']].copy()
-    display_df['Date'] = display_df['Date'].astype(str).str.split().str[0]
-    display_df = display_df.sort_values('Date', ascending=False)
-    st.dataframe(display_df.reset_index(drop=True), use_container_width=True, hide_index=True, height=450)
-    
-    csv = display_df.to_csv(index=False).encode('utf-8')
-    st.download_button("⬇️ Download Analytics CSV", csv, "instagram_analytics.csv", "text/csv")
+with col4:
+    engagement_rate = (df['Likes'].sum() + df['Comments'].sum()) / df['Reach'].sum() * 100
+    st.metric("Engagement Rate", f"{engagement_rate:.2f}%")
 
 st.markdown("---")
-st.markdown('<p style="text-align:center;color:#444;font-size:0.8rem;">📸 Instagram Analytics Dashboard | Track Your Growth</p>', unsafe_allow_html=True)
+
+# --- Tabs ---
+tab1, tab2, tab3, tab4 = st.tabs(["📈 Overview", "📊 Engagement", "🎯 Growth", "📥 Data"])
+
+with tab1:
+    st.subheader("Performance Overview")
+
+    # Line Chart - Reach & Impressions
+    fig1 = px.line(df, x='Date', y=['Reach', 'Impressions'],
+                   title='Reach vs Impressions Over Time',
+                   template='plotly_dark',
+                   color_discrete_sequence=['#f09433', '#e6683c'])
+    fig1.update_layout(hovermode='x unified', paper_bgcolor='#0a0a0a', plot_bgcolor='#1a1a1a')
+    st.plotly_chart(fig1, use_container_width=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        # Bar Chart - Likes by Date
+        fig2 = px.bar(df.tail(14), x='Date', y='Likes',
+                      title='Likes - Last 14 Days',
+                      template='plotly_dark',
+                      color_discrete_sequence=['#dc2743'])
+        fig2.update_layout(paper_bgcolor='#0a0a0a', plot_bgcolor='#1a1a1a')
+        st.plotly_chart(fig2, use_container_width=True)
+
+    with col2:
+        # Area Chart - Comments Trend
+        fig3 = px.area(df.tail(14), x='Date', y='Comments',
+                       title='Comments Trend - Last 14 Days',
+                       template='plotly_dark',
+                       color_discrete_sequence=['#cc2366'])
+        fig3.update_layout(paper_bgcolor='#0a0a0a', plot_bgcolor='#1a1a1a')
+        st.plotly_chart(fig3, use_container_width=True)
+
+with tab2:
+    st.subheader("Engagement Breakdown")
+
+    # Pie Chart
+    engagement_data = {
+        'Metric': ['Likes', 'Comments', 'Shares', 'Saves'],
+        'Count': [df['Likes'].sum(), df['Comments'].sum(),
+                  df.get('Shares', pd.Series([0])).sum(),
+                  df.get('Saves', pd.Series([0])).sum()]
+    }
+    fig4 = px.pie(engagement_data, values='Count', names='Metric',
+                  title='Engagement Distribution',
+                  template='plotly_dark',
+                  color_discrete_sequence=['#f09433', '#e6683c', '#dc2743', '#bc1888'])
+    fig4.update_layout(paper_bgcolor='#0a0a0a')
+    st.plotly_chart(fig4, use_container_width=True)
+
+    # Scatter Plot
+    fig5 = px.scatter(df, x='Reach', y='Likes', size='Comments',
+                      title='Reach vs Likes Correlation',
+                      template='plotly_dark',
+                      color='Comments',
+                      color_continuous_scale='OrRd')
+    fig5.update_layout(paper_bgcolor='#0a0a0a', plot_bgcolor='#1a1a1a')
+    st.plotly_chart(fig5, use_container_width=True)
+
+with tab3:
+    st.subheader("Follower Growth")
+
+    if 'Followers' in df.columns:
+        fig6 = px.line(df, x='Date', y='Followers',
+                       title='Follower Growth Trend',
+                       template='plotly_dark',
+                       color_discrete_sequence=['#bc1888'])
+        fig6.update_layout(paper_bgcolor='#0a0a0a', plot_bgcolor='#1a1a1a')
+        st.plotly_chart(fig6, use_container_width=True)
+
+        # Growth Rate
+        df['Growth'] = df['Followers'].diff()
+        fig7 = px.bar(df.tail(14), x='Date', y='Growth',
+                      title='Daily Follower Growth - Last 14 Days',
+                      template='plotly_dark',
+                      color='Growth',
+                      color_continuous_scale='RdYlGn')
+        fig7.update_layout(paper_bgcolor='#0a0a0a', plot_bgcolor='#1a1a1a')
+        st.plotly_chart(fig7, use_container_width=True)
+    else:
+        st.warning("Followers column not found in your data")
+
+with tab4:
+    st.subheader("Raw Data")
+    st.dataframe(df, use_container_width=True, height=400)
+
+    # Download button
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Download Processed CSV",
+        data=csv,
+        file_name=f"instagram_analytics_{datetime.now().strftime('%Y%m%d')}.csv",
+        mime="text/csv"
+    )
+
+    # Data Stats
+    st.subheader("Data Summary")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Rows", len(df))
+    col2.metric("Date Range", f"{df['Date'].min().date()} to {df['Date'].max().date()}")
+    col3.metric("Columns", len(df.columns))
+
+# --- Footer ---
+st.markdown("---")
+st.caption("Data source: Instagram CSV Export | Built with Streamlit & Plotly | Premium Dashboard v2.0")
