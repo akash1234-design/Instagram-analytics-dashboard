@@ -49,6 +49,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+@st.cache_data
 def generate_instagram_data():
     dates = pd.date_range(start='2024-01-01', end='2025-01-01', freq='D')
     data = []
@@ -90,14 +91,14 @@ period_map = {
 days = period_map[time_period]
 filt = df.tail(days) if days else df
 
-current_followers = filt['Followers'].iloc[-1]
-prev_followers = filt['Followers'].iloc[0]
+current_followers = int(filt['Followers'].iloc[-1])
+prev_followers = int(filt['Followers'].iloc[0])
 follower_growth = current_followers - prev_followers
 growth_pct = (follower_growth / prev_followers * 100) if prev_followers > 0 else 0
 
 avg_engagement = filt['Engagement_Rate'].mean()
-total_likes = filt['Likes'].sum()
-total_comments = filt['Comments'].sum()
+total_likes = int(filt['Likes'].sum())
+total_comments = int(filt['Comments'].sum())
 
 c1, c2, c3, c4 = st.columns(4)
 with c1:
@@ -132,9 +133,9 @@ with tab1:
         "Value": [
             f"{follower_growth:,}",
             f"{growth_pct:.2f}%",
-            f"{follower_growth/len(filt):.0f}",
-            f"+{filt['Followers'].diff().max():.0f}",
-            f"{filt['Followers'].diff().min():.0f}"
+            f"{int(follower_growth/len(filt))}",
+            f"+{int(filt['Followers'].diff().max())}",
+            f"{int(filt['Followers'].diff().min())}"
         ]
     })
     st.dataframe(growth_df, use_container_width=True, hide_index=True)
@@ -148,7 +149,7 @@ with tab2:
     with c2:
         st.metric("Total Comments", f"{total_comments:,}")
     with c3:
-        st.metric("Total Shares", f"{filt['Shares'].sum():,}")
+        st.metric("Total Shares", f"{int(filt['Shares'].sum()):,}")
     
     fig = px.bar(x=filt['Date'], y=['Likes', 'Comments', 'Shares'],
                  barmode='stack', color_discrete_sequence=['#E4405F', '#FD1D1D', '#FF6B9D'],
@@ -175,15 +176,16 @@ with tab3:
 
 with tab4:
     st.markdown('<div class="section-title">TOP PERFORMING POSTS</div>', unsafe_allow_html=True)
-    filt['Total_Engagement'] = filt['Likes'] + filt['Comments'] + filt['Shares']
-    top_posts = filt.nlargest(10, 'Total_Engagement')[['Date', 'Post_Type', 'Likes', 'Comments', 'Shares', 'Engagement_Rate']]
-    top_posts['Date'] = top_posts['Date'].dt.date
+    filt_copy = filt.copy()
+    filt_copy['Total_Engagement'] = filt_copy['Likes'] + filt_copy['Comments'] + filt_copy['Shares']
+    top_posts = filt_copy.nlargest(10, 'Total_Engagement')[['Date', 'Post_Type', 'Likes', 'Comments', 'Shares', 'Engagement_Rate']].copy()
+    top_posts['Date'] = top_posts['Date'].astype(str).str.split().str[0]
     st.dataframe(top_posts.reset_index(drop=True), use_container_width=True, hide_index=True, height=300)
 
 with tab5:
     st.markdown('<div class="section-title">DETAILED ANALYTICS</div>', unsafe_allow_html=True)
     display_df = filt[['Date', 'Followers', 'Likes', 'Comments', 'Shares', 'Engagement_Rate', 'Post_Type']].copy()
-    display_df['Date'] = pd.to_datetime(display_df['Date']).dt.date
+    display_df['Date'] = display_df['Date'].astype(str).str.split().str[0]
     display_df = display_df.sort_values('Date', ascending=False)
     st.dataframe(display_df.reset_index(drop=True), use_container_width=True, hide_index=True, height=450)
     
